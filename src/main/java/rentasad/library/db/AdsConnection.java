@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * Gustini GmbH
  * Creation: 15.12.2015 Library gustini.library.db
- * Last Update: 10.03.2020
+ * Last Update: 14.11.2024
  * <p>
  * Changed from inline Connection String to Config File based Connection-String
  *
@@ -31,7 +31,7 @@ import java.util.Map;
 @Slf4j
 public class AdsConnection
 {
-	public static final String ADS_CONNECTION_VERSION = "D2.9.10-SNAPSHOT";
+	public static final String ADS_CONNECTION_VERSION = "D3.0.0";
 	public static final String DEFAULT_CONFIG_FILE_PATH = "resources/config/adsConnection.ini";
 	public static final String DEFAULT_CONFIG_FILE_PATH_IN_RESOURCES = "config/adsConnection.ini";
 	public static final String DEFAULT_SECTION_NAME = "ADS_CONNECTION";

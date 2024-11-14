@@ -6,15 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Gustini GmbH (2016)
- * Creation: 23.02.2016
- * Library
- * gustini.library.db
- *
- * @author Matthias Staud
- * <p>
- * <p>
- * Description:Werkzeuge zur effizienten Arbeit mit Sybase ADS
+ * Utility class for handling operations related to Advantage Database Server (ADS).
  */
 public class AdsUtility
 {
