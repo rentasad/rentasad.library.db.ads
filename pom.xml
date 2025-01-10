@@ -6,7 +6,7 @@
 	<artifactId>rentasad.library.db.ads</artifactId>
 	<name>rentasad.library.db.ads</name>
 	<groupId>rentasad.library</groupId>
-	<version>D3.0.1</version>
+	<version>D3.0.2</version>
 	<!-- Copy & Paste:
 	<dependency>
 		<groupId>rentasad</groupId>
