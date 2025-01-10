@@ -6,7 +6,7 @@
 	<artifactId>rentasad.library.db.ads</artifactId>
 	<name>rentasad.library.db.ads</name>
 	<groupId>rentasad.library</groupId>
-	<version>D3.0.0</version>
+	<version>D3.0.1</version>
 	<!-- Copy & Paste:
 	<dependency>
 		<groupId>rentasad</groupId>
@@ -39,7 +39,7 @@
 		<dependency>
 			<groupId>rentasad.library</groupId>
 			<artifactId>rentasad.library.basicTools.configFileTool</artifactId>
-			<version>B2.6.1</version>
+			<version>B2.6.2</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
 		<dependency>

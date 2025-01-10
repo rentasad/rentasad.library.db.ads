@@ -34,7 +34,10 @@ public class AdsUtility
 	 */
 	public static boolean existTable(final Connection con, final String tableName) throws SQLException
 	{
-		String existQuery = String.format("SELECT count(TABLE_NAME) anzahl FROM (\r\n" + "EXECUTE PROCEDURE sp_GetTables( NULL, NULL, NULL, 'TABLE')\r\n" + ")  as  tables WHERE TABLE_NAME = '%s.dbf'",
+		String existQuery = String.format("""
+										  SELECT count(TABLE_NAME) anzahl FROM (\r
+										  EXECUTE PROCEDURE sp_GetTables( NULL, NULL, NULL, 'TABLE')\r
+										  )  as  tables WHERE TABLE_NAME = '%s.dbf'""",
 										  tableName);
 		try (Statement stmt = con.createStatement())
 		{
