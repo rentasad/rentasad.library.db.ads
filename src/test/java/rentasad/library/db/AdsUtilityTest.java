@@ -20,14 +20,55 @@ public class AdsUtilityTest
 	@BeforeAll
 	protected static void setUp() throws Exception
 	{
-		adsCon = AdsConnection.dbConnect();
-		String createTableQuery = "CREATE TABLE GUSTINI\\Lala (ID Numeric( 13 ,0 ));";
-		Statement stmt = adsCon.createStatement();
-		stmt.executeUpdate(createTableQuery);
+		createLalaTable();
 	}
 
 	@AfterAll
 	protected static  void tearDown() throws Exception
+	{
+		dropLalaTable();
+	}
+
+	@Test
+	public void testExistTableWithSpecialDirectory() throws SQLException
+	{
+		assertTrue(AdsUtility.existTable("GUSTINI", "Lala"));
+		assertFalse(AdsUtility.existTable(adsCon, "Lala"));
+		assertTrue(AdsUtility.existTable("GUSTINI", "LALA"));
+		assertTrue(AdsUtility.existTable("GUSTINI", "lala"));
+		assertTrue(AdsUtility.existTable("GUSTINI", "LaLa"));
+		assertFalse(AdsUtility.existTable("GUSTINI", "LaLa2"));
+		assertFalse(AdsUtility.existTable("GUSTINI", "LaL"));
+	}
+
+	@Test
+	public void testExistTableWithSpecialConnection() throws SQLException
+	{
+		Connection conGustini = AdsConnection.dbConnectToDictionary("GUSTINI");
+		assertTrue(AdsUtility.existTable(conGustini, "Lala"));
+		assertFalse(AdsUtility.existTable(adsCon, "Lala"));
+	}
+
+
+	private static void createLalaTable()
+	{
+		try
+		{
+			adsCon = AdsConnection.dbConnect();
+			String createTableQuery = "CREATE TABLE GUSTINI\\Lala (ID Numeric( 13 ,0 ));";
+			Statement stmt = adsCon.createStatement();
+			stmt.executeUpdate(createTableQuery);
+		} catch (SQLException e)
+		{
+			if (!e.getMessage().equals("[iAnywhere Solutions][Advantage JDBC]State = S0000;   NativeError = 2010;  [SAP][Advantage SQL Engine][ISAM]ISAM table already exists"))
+			{
+				throw new RuntimeException(e);
+			}
+		}
+
+	}
+
+	private static void dropLalaTable() throws SQLException
 	{
 		adsCon = AdsConnection.dbConnect();
 		String createTableQuery = "DROP TABLE GUSTINI\\Lala;";
@@ -35,16 +76,4 @@ public class AdsUtilityTest
 		stmt.executeUpdate(createTableQuery);
 		adsCon.close();
 	}
-
-	@Test
-	public void testExistTable() throws SQLException
-	{
-		assertTrue(AdsUtility.existTable("GUSTINI", "Lala"));
-		assertTrue(AdsUtility.existTable("GUSTINI", "LALA")); 
-		assertTrue(AdsUtility.existTable("GUSTINI", "lala")); 
-		assertTrue(AdsUtility.existTable("GUSTINI", "LaLa"));
-		assertFalse(AdsUtility.existTable("GUSTINI", "LaLa2"));
-		assertFalse(AdsUtility.existTable("GUSTINI", "LaL"));
-	}
-
 }
