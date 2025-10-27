@@ -6,7 +6,7 @@
 	<artifactId>rentasad.library.db.ads</artifactId>
 	<name>rentasad.library.db.ads</name>
 	<groupId>rentasad.library</groupId>
-	<version>3.0.2</version>
+	<version>3.0.3</version>
 	<!-- Copy & Paste:
 	<dependency>
 		<groupId>rentasad</groupId>
@@ -48,11 +48,13 @@
 			<version>2.0.14</version>
 		</dependency>
 		<!-- SLF4J Logback Binding -->
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>1.5.6</version>
-		</dependency>
+        <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.5.20</version>
+            <scope>compile</scope>
+        </dependency>
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
@@ -95,6 +97,9 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>${maven-surefire-plugin}</version>
+                    <configuration>
+                        <argLine>-Dfile.encoding=CP1252</argLine>
+                    </configuration>
 				</plugin>
 				<plugin>
 					<artifactId>maven-jar-plugin</artifactId>

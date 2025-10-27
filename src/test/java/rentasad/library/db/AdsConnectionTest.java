@@ -75,7 +75,8 @@ public class AdsConnectionTest
 		}
 	}
 
-	@Test public void encodingCheckQuarterAddress() throws Exception
+	// @Test Test not valid - address moved
+    public void encodingCheckQuarterAddress() throws Exception
 	{
 		String query = "SELECT ORTSTEIL FROM F99\\ADRESSEN\\V2AD1001 WHERE NUMMER = '1102717070'";
 		Connection con = AdsConnection.dbConnect();
