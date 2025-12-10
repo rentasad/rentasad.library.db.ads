@@ -32,7 +32,7 @@ import java.util.Map;
 @Slf4j
 public class AdsConnection
 {
-	public static final String ADS_CONNECTION_VERSION = "D3.0.2";
+	public static final String ADS_CONNECTION_VERSION = "3.0.4";
 	public static final String DEFAULT_CONFIG_FILE_PATH = "resources/config/adsConnection.ini";
 	public static final String DEFAULT_CONFIG_FILE_PATH_IN_RESOURCES = "config/adsConnection.ini";
 	public static final String DEFAULT_SECTION_NAME = "ADS_CONNECTION";
