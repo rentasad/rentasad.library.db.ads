@@ -2,6 +2,7 @@ package rentasad.library.db;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import rentasad.library.configFileTool.ConfigFileTool;
 import rentasad.library.configFileTool.ConfigFileToolException;
@@ -29,7 +30,7 @@ import java.util.Map;
  * <p>
  * Description: Stellt eine Verbindung zur ADS-Datenbank her.
  */
-@Slf4j
+@Log
 public class AdsConnection
 {
 	public static final String ADS_CONNECTION_VERSION = "3.0.4";

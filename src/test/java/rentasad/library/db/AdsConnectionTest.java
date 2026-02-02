@@ -1,22 +1,17 @@
 package rentasad.library.db;
 
-import java.nio.charset.StandardCharsets;
+import lombok.extern.java.Log;
+import org.junit.jupiter.api.Test;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashMap;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.core.util.StatusPrinter;
-import ch.qos.logback.core.util.StatusPrinter2;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-@Slf4j
 public class AdsConnectionTest
 {
+	private static final java.util.logging.Logger log = java.util.logging.Logger.getLogger(AdsConnectionTest.class.getName());
 
 	@Test public void testDbConnection() throws Exception
 	{
