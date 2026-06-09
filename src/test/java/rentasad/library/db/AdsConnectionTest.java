@@ -7,8 +7,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class AdsConnectionTest
 {
 	private static final java.util.logging.Logger log = java.util.logging.Logger.getLogger(AdsConnectionTest.class.getName());
@@ -90,5 +92,28 @@ public class AdsConnectionTest
 			assertEquals(expected, normalFieldValue );
 			System.out.println(actualText);
 		}
+	}
+	@Test
+	public void testClosePoolAndReconnect() throws Exception
+	{
+		log.info("testClosePoolAndReconnect");
+		Map<String, String> configMap = AdsConnection.getDefaultConfigMap();
+		AdsConnection adsCon = AdsConnection.getInstance(configMap);
+
+		Connection con1 = adsCon.getConnection();
+		assertEquals(1, adsCon.getActiveConnectionCount());
+		con1.close();
+		// Active connections should be 0, but total connections should be at least 1 (cached in pool)
+		assertEquals(0, adsCon.getActiveConnectionCount());
+
+		adsCon.closePool();
+		assertEquals(0, adsCon.getTotalConnectionCount());
+
+		// Now try to get a new connection - it should re-initialize
+		Connection con2 = AdsConnection.dbConnect(configMap);
+		AdsConnection adsCon2 = AdsConnection.getInstance(configMap);
+		assertEquals(1, adsCon2.getActiveConnectionCount());
+		con2.close();
+		adsCon2.closePool();
 	}
 }

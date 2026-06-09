@@ -33,7 +33,7 @@ import java.util.Map;
 @Log
 public class AdsConnection
 {
-	public static final String ADS_CONNECTION_VERSION = "3.0.5";
+	public static final String ADS_CONNECTION_VERSION = "3.1.0";
 	public static final String DEFAULT_CONFIG_FILE_PATH = "resources/config/adsConnection.ini";
 	public static final String DEFAULT_CONFIG_FILE_PATH_IN_RESOURCES = "config/adsConnection.ini";
 	public static final String DEFAULT_SECTION_NAME = "ADS_CONNECTION";
@@ -283,6 +283,51 @@ public class AdsConnection
 	 * @return Creation: 15.12.2015 by mst
 	 * @throws SQLException
 	 */
+	/**
+	 * Returns the number of currently active (busy) connections in the Hikari connection pool.
+	 *
+	 * @return The number of active connections.
+	 */
+	public int getActiveConnectionCount()
+	{
+		if (this.dataSource != null && !this.dataSource.isClosed())
+		{
+			return this.dataSource.getHikariPoolMXBean().getActiveConnections();
+		}
+		return 0;
+	}
+
+	/**
+	 * Returns the total number of connections in the Hikari connection pool (active and idle).
+	 *
+	 * @return The total number of connections.
+	 */
+	public int getTotalConnectionCount()
+	{
+		if (this.dataSource != null && !this.dataSource.isClosed())
+		{
+			return this.dataSource.getHikariPoolMXBean().getTotalConnections();
+		}
+		return 0;
+	}
+
+	/**
+	 * Closes the Hikari connection pool, releasing all physical connections to the ADS database.
+	 * This allows the underlying ADS DBF files to be released.
+	 * The instance is removed from the internal cache to ensure it is re-initialized on the next request.
+	 */
+	public void closePool()
+	{
+		if (this.dataSource != null && !this.dataSource.isClosed())
+		{
+			this.dataSource.close();
+		}
+		synchronized (instances)
+		{
+			instances.remove(this.connectionString);
+		}
+	}
+
 	public Connection getConnection() throws SQLException
 	{
 		if (dataSource == null)

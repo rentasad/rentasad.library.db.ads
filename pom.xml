@@ -6,7 +6,7 @@
 	<artifactId>rentasad.library.db.ads</artifactId>
 	<name>rentasad.library.db.ads</name>
 	<groupId>rentasad.library</groupId>
-	<version>3.0.6</version>
+	<version>3.1.0</version>
 	<properties>
 		<project.build.sourceEncoding>CP1252</project.build.sourceEncoding>
 		<maven.compiler.source>17</maven.compiler.source>
