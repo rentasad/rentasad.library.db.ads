@@ -44,3 +44,15 @@ CHAR_TYPE=OEM
 # If the catalog property specifies a directory where free tables are located,
 # this property applies to tables used in all SQL Statements.
 TABLE_TYPE=cdx
+
+# Connection pool (optional, since 3.2.0). One pool per JDBC URL (per directory).
+# A system property rentasad.library.db.ads.<KEY> overrides the value here.
+# Maximum number of connections per pool. Default: 20
+#POOL_SIZE=20
+# Minimum number of idle connections. 0 = idle connections are closed, so the ADS
+# releases the tables they had opened. Default: 0
+#MIN_IDLE=0
+# Seconds until an idle connection is closed (minimum 10, 0 = never). Default: 10
+#IDLE_TIMEOUT_SEC=10
+# Maximum lifetime of a pooled connection in seconds (0 = infinite). Default: 1800
+#MAX_LIFETIME_SEC=1800
