@@ -78,6 +78,35 @@ public class AdsConnectionPoolConfigTest
 	}
 
 	@Test
+	public void timeoutsBelowHikariMinimumFallBackToDefaults()
+	{
+		// HikariCP would silently turn these into 10 minutes / 30 minutes
+		Map<String, String> configMap = new HashMap<>();
+		configMap.put(AdsConnection.PARAMETER_NAME_IDLE_TIMEOUT_SEC, "5");
+		configMap.put(AdsConnection.PARAMETER_NAME_MAX_LIFETIME_SEC, "29");
+		AdsConnection.PoolSettings settings = AdsConnection.readPoolSettings(configMap);
+		assertEquals(AdsConnection.DEFAULT_IDLE_TIMEOUT_SEC * 1000L, settings.idleTimeoutMs());
+		assertEquals(AdsConnection.DEFAULT_MAX_LIFETIME_SEC * 1000L, settings.maxLifetimeMs());
+	}
+
+	@Test
+	public void timeoutsAtHikariMinimumAndZeroAreAccepted()
+	{
+		Map<String, String> configMap = new HashMap<>();
+		configMap.put(AdsConnection.PARAMETER_NAME_IDLE_TIMEOUT_SEC, "10");
+		configMap.put(AdsConnection.PARAMETER_NAME_MAX_LIFETIME_SEC, "30");
+		AdsConnection.PoolSettings settings = AdsConnection.readPoolSettings(configMap);
+		assertEquals(10_000L, settings.idleTimeoutMs());
+		assertEquals(30_000L, settings.maxLifetimeMs());
+
+		configMap.put(AdsConnection.PARAMETER_NAME_IDLE_TIMEOUT_SEC, "0");
+		configMap.put(AdsConnection.PARAMETER_NAME_MAX_LIFETIME_SEC, "0");
+		settings = AdsConnection.readPoolSettings(configMap);
+		assertEquals(0L, settings.idleTimeoutMs());
+		assertEquals(0L, settings.maxLifetimeMs());
+	}
+
+	@Test
 	public void minIdleIsLimitedToPoolSize()
 	{
 		Map<String, String> configMap = new HashMap<>();

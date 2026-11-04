@@ -54,5 +54,5 @@ TABLE_TYPE=cdx
 #MIN_IDLE=0
 # Seconds until an idle connection is closed (minimum 10, 0 = never). Default: 10
 #IDLE_TIMEOUT_SEC=10
-# Maximum lifetime of a pooled connection in seconds (0 = infinite). Default: 1800
+# Maximum lifetime of a pooled connection in seconds (minimum 30, 0 = infinite). Default: 1800
 #MAX_LIFETIME_SEC=1800

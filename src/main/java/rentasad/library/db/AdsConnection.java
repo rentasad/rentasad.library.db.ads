@@ -63,6 +63,14 @@ public class AdsConnection
 	 * Default maximum lifetime of a pooled connection in seconds (HikariCP default: 30 minutes).
 	 */
 	public static final int DEFAULT_MAX_LIFETIME_SEC = 1800;
+	/**
+	 * Smallest accepted idle timeout in seconds (HikariCP minimum); 0 means "never".
+	 */
+	public static final int MIN_IDLE_TIMEOUT_SEC = 10;
+	/**
+	 * Smallest accepted maximum lifetime in seconds (HikariCP minimum); 0 means "infinite".
+	 */
+	public static final int MIN_MAX_LIFETIME_SEC = 30;
 
 	/**
 	 * @deprecated since 3.2.0 the pool size is configurable, see {@link #PARAMETER_NAME_POOL_SIZE}
@@ -311,8 +319,24 @@ public class AdsConnection
 			minIdle = poolSize;
 		}
 		int idleTimeoutSec = readIntSetting(configMap, PARAMETER_NAME_IDLE_TIMEOUT_SEC, DEFAULT_IDLE_TIMEOUT_SEC, 0);
+		idleTimeoutSec = zeroOrAtLeast(PARAMETER_NAME_IDLE_TIMEOUT_SEC, idleTimeoutSec, MIN_IDLE_TIMEOUT_SEC, DEFAULT_IDLE_TIMEOUT_SEC);
 		int maxLifetimeSec = readIntSetting(configMap, PARAMETER_NAME_MAX_LIFETIME_SEC, DEFAULT_MAX_LIFETIME_SEC, 0);
+		maxLifetimeSec = zeroOrAtLeast(PARAMETER_NAME_MAX_LIFETIME_SEC, maxLifetimeSec, MIN_MAX_LIFETIME_SEC, DEFAULT_MAX_LIFETIME_SEC);
 		return new PoolSettings(poolSize, minIdle, TimeUnit.SECONDS.toMillis(idleTimeoutSec), TimeUnit.SECONDS.toMillis(maxLifetimeSec));
+	}
+
+	/**
+	 * HikariCP silently replaces an idleTimeout below 10 s by 10 minutes and a maxLifetime below 30 s by
+	 * 30 minutes, i.e. the opposite of a small value. Such values are therefore rejected here.
+	 */
+	private static int zeroOrAtLeast(final String key, final int value, final int minimumValue, final int defaultValue)
+	{
+		if (value != 0 && value < minimumValue)
+		{
+			log.warning(String.format("Invalid value %s=%d (0 or at least %d), using default %d", key, value, minimumValue, defaultValue));
+			return defaultValue;
+		}
+		return value;
 	}
 
 	private static int readIntSetting(final Map<String, String> configMap, final String key, final int defaultValue, final int minimumValue)
@@ -384,8 +408,11 @@ public class AdsConnection
 	 */
 	private static void initializeConfigMapWithDefaults(final Map<String, String> configMap) throws SQLException
 	{
-		Map<String, String> defaultConfigMap = getDefaultConfigMap();
+		initializeConfigMapWithDefaults(configMap, getDefaultConfigMap());
+	}
 
+	private static void initializeConfigMapWithDefaults(final Map<String, String> configMap, final Map<String, String> defaultConfigMap)
+	{
 		for (String parameter : List.of(PARAMETER_NAME_ADS_SOCKET, PARAMETER_NAME_ADS_LOCK_TYPE, PARAMETER_NAME_ADS_CHAR_TYPE, PARAMETER_NAME_ADS_TABLE_TYPE))
 		{
 			putDefaultIfAbsent(configMap, defaultConfigMap, parameter);
@@ -665,10 +692,12 @@ public static Connection dbConnectUnpooled() throws SQLException
  */
 public static Connection dbConnectUnpooled(final String appendConnectionDirectoryString) throws SQLException
 {
-	Map<String, String> configMap = new HashMap<>(getDefaultConfigMap());
+	Map<String, String> defaultConfigMap = getDefaultConfigMap();
+	Map<String, String> configMap = new HashMap<>(defaultConfigMap);
 	String suffix = appendConnectionDirectoryString == null ? "" : appendConnectionDirectoryString;
 	configMap.compute(PARAMETER_NAME_ADS_DATABASE_DICTIONARY, (k, dataDictionary) -> (dataDictionary == null ? "" : dataDictionary) + suffix);
-	return dbConnectUnpooled(configMap);
+	// the default configuration is read only once per call
+	return openUnpooledConnection(configMap, defaultConfigMap);
 }
 
 /**
@@ -685,8 +714,20 @@ public static Connection dbConnectUnpooled(final Map<String, String> configMap) 
 	{
 		throw new SQLException(String.format("Config map must contain %s and %s", PARAMETER_NAME_ADS_HOST, PARAMETER_NAME_ADS_DATABASE_DICTIONARY));
 	}
+	return openUnpooledConnection(configMap, getDefaultConfigMap());
+}
+
+/**
+ * Fills missing optional keys exactly like the pool constructor does and opens a physical connection.
+ */
+private static Connection openUnpooledConnection(final Map<String, String> configMap, final Map<String, String> defaultConfigMap) throws SQLException
+{
+	if (configMap == null || !configMap.containsKey(PARAMETER_NAME_ADS_HOST) || !configMap.containsKey(PARAMETER_NAME_ADS_DATABASE_DICTIONARY))
+	{
+		throw new SQLException(String.format("Config map must contain %s and %s", PARAMETER_NAME_ADS_HOST, PARAMETER_NAME_ADS_DATABASE_DICTIONARY));
+	}
 	Map<String, String> completeConfigMap = new HashMap<>(configMap);
-	initializeConfigMapWithDefaults(completeConfigMap);
+	initializeConfigMapWithDefaults(completeConfigMap, defaultConfigMap);
 	String unpooledConnectionString = generateConnectionString(completeConfigMap);
 	try
 	{
