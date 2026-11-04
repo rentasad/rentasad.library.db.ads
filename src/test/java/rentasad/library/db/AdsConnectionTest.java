@@ -116,4 +116,68 @@ public class AdsConnectionTest
 		con2.close();
 		adsCon2.closePool();
 	}
+
+	@Test
+	public void testExistingConnectionAfterPoolClose() throws Exception
+	{
+		log.info("testExistingConnectionAfterPoolClose");
+		Map<String, String> configMap = AdsConnection.getDefaultConfigMap();
+		AdsConnection adsCon = AdsConnection.getInstance(configMap);
+
+		Connection con = adsCon.getConnection();
+		// Teste ob die Verbindung funktioniert
+		try (Statement stmt = con.createStatement())
+		{
+			stmt.executeQuery("SELECT 1 FROM system.iota");
+		}
+		assertEquals(true, AdsConnection.isConnectionValid(con));
+
+		// Pool schließen
+		adsCon.closePool();
+
+		// Jetzt sollte die Validierung fehlschlagen
+		assertEquals(false, AdsConnection.isConnectionValid(con));
+
+		// Jetzt sollte der Zugriff auf 'con' fehlschlagen
+		try
+		{
+			try (Statement stmt = con.createStatement())
+			{
+				stmt.executeQuery("SELECT 1 FROM system.iota");
+			}
+			// Wenn wir hier ankommen, wurde keine Exception geworfen
+			log.warning("Connection is still valid after pool close - this might be unexpected for the user.");
+		}
+		catch (java.sql.SQLException e)
+		{
+			log.info("Caught expected SQLException after pool close: " + e.getMessage());
+		}
+	}
+	@Test
+	public void testGetValidConnection() throws Exception
+	{
+		log.info("testGetValidConnection");
+		Connection con = AdsConnection.dbConnect();
+		
+		// Pool schließen, um Verbindung ungültig zu machen
+		Map<String, String> configMap = AdsConnection.getDefaultConfigMap();
+		AdsConnection.getInstance(configMap).closePool();
+		
+		assertEquals(false, AdsConnection.isConnectionValid(con));
+		
+		// getValidConnection sollte eine neue, valide Verbindung liefern
+		Connection validCon = AdsConnection.getValidConnection(con);
+		try
+		{
+			assertEquals(true, AdsConnection.isConnectionValid(validCon));
+			try (Statement stmt = validCon.createStatement())
+			{
+				stmt.executeQuery("SELECT 1 FROM system.iota");
+			}
+		}
+		finally
+		{
+			validCon.close();
+		}
+	}
 }

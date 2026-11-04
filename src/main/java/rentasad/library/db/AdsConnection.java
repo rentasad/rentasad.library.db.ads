@@ -33,7 +33,7 @@ import java.util.Map;
 @Log
 public class AdsConnection
 {
-	public static final String ADS_CONNECTION_VERSION = "3.1.0";
+	public static final String ADS_CONNECTION_VERSION = "3.1.1";
 	public static final String DEFAULT_CONFIG_FILE_PATH = "resources/config/adsConnection.ini";
 	public static final String DEFAULT_CONFIG_FILE_PATH_IN_RESOURCES = "config/adsConnection.ini";
 	public static final String DEFAULT_SECTION_NAME = "ADS_CONNECTION";
@@ -326,6 +326,52 @@ public class AdsConnection
 		{
 			instances.remove(this.connectionString);
 		}
+	}
+
+	/**
+	 * Checks if a connection is still valid.
+	 *
+	 * @param con the connection to check.
+	 * @return true if the connection is valid, false otherwise.
+	 */
+	public static boolean isConnectionValid(Connection con)
+	{
+		if (con == null)
+		{
+			return false;
+		}
+		try
+		{
+			if (con.isClosed())
+			{
+				return false;
+			}
+			// Attempt a simple query to verify connection
+			try (java.sql.Statement stmt = con.createStatement())
+			{
+				stmt.executeQuery("SELECT 1 FROM system.iota").close();
+				return true;
+			}
+		} catch (SQLException | RuntimeException e)
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * Ensures the provided connection is still valid or retrieves a new one from the pool.
+	 *
+	 * @param con the connection to validate.
+	 * @return the same connection if it is valid, or a new connection if it was invalid or null.
+	 * @throws SQLException if a new connection cannot be established.
+	 */
+	public static Connection getValidConnection(Connection con) throws SQLException
+	{
+		if (isConnectionValid(con))
+		{
+			return con;
+		}
+		return dbConnect();
 	}
 
 	public Connection getConnection() throws SQLException
