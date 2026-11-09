@@ -1,22 +1,19 @@
 package rentasad.library.db;
 
-import java.nio.charset.StandardCharsets;
+import lombok.extern.java.Log;
+import org.junit.jupiter.api.Test;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashMap;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.core.util.StatusPrinter;
-import ch.qos.logback.core.util.StatusPrinter2;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-@Slf4j
+
 public class AdsConnectionTest
 {
+	private static final java.util.logging.Logger log = java.util.logging.Logger.getLogger(AdsConnectionTest.class.getName());
 
 	@Test public void testDbConnection() throws Exception
 	{
@@ -94,6 +91,93 @@ public class AdsConnectionTest
 			assertEquals(expected, actualText);
 			assertEquals(expected, normalFieldValue );
 			System.out.println(actualText);
+		}
+	}
+	@Test
+	public void testClosePoolAndReconnect() throws Exception
+	{
+		log.info("testClosePoolAndReconnect");
+		Map<String, String> configMap = AdsConnection.getDefaultConfigMap();
+		AdsConnection adsCon = AdsConnection.getInstance(configMap);
+
+		Connection con1 = adsCon.getConnection();
+		assertEquals(1, adsCon.getActiveConnectionCount());
+		con1.close();
+		// Active connections should be 0, but total connections should be at least 1 (cached in pool)
+		assertEquals(0, adsCon.getActiveConnectionCount());
+
+		adsCon.closePool();
+		assertEquals(0, adsCon.getTotalConnectionCount());
+
+		// Now try to get a new connection - it should re-initialize
+		Connection con2 = AdsConnection.dbConnect(configMap);
+		AdsConnection adsCon2 = AdsConnection.getInstance(configMap);
+		assertEquals(1, adsCon2.getActiveConnectionCount());
+		con2.close();
+		adsCon2.closePool();
+	}
+
+	@Test
+	public void testExistingConnectionAfterPoolClose() throws Exception
+	{
+		log.info("testExistingConnectionAfterPoolClose");
+		Map<String, String> configMap = AdsConnection.getDefaultConfigMap();
+		AdsConnection adsCon = AdsConnection.getInstance(configMap);
+
+		Connection con = adsCon.getConnection();
+		// Teste ob die Verbindung funktioniert
+		try (Statement stmt = con.createStatement())
+		{
+			stmt.executeQuery("SELECT 1 FROM system.iota");
+		}
+		assertEquals(true, AdsConnection.isConnectionValid(con));
+
+		// Pool schließen
+		adsCon.closePool();
+
+		// Jetzt sollte die Validierung fehlschlagen
+		assertEquals(false, AdsConnection.isConnectionValid(con));
+
+		// Jetzt sollte der Zugriff auf 'con' fehlschlagen
+		try
+		{
+			try (Statement stmt = con.createStatement())
+			{
+				stmt.executeQuery("SELECT 1 FROM system.iota");
+			}
+			// Wenn wir hier ankommen, wurde keine Exception geworfen
+			log.warning("Connection is still valid after pool close - this might be unexpected for the user.");
+		}
+		catch (java.sql.SQLException e)
+		{
+			log.info("Caught expected SQLException after pool close: " + e.getMessage());
+		}
+	}
+	@Test
+	public void testGetValidConnection() throws Exception
+	{
+		log.info("testGetValidConnection");
+		Connection con = AdsConnection.dbConnect();
+		
+		// Pool schließen, um Verbindung ungültig zu machen
+		Map<String, String> configMap = AdsConnection.getDefaultConfigMap();
+		AdsConnection.getInstance(configMap).closePool();
+		
+		assertEquals(false, AdsConnection.isConnectionValid(con));
+		
+		// getValidConnection sollte eine neue, valide Verbindung liefern
+		Connection validCon = AdsConnection.getValidConnection(con);
+		try
+		{
+			assertEquals(true, AdsConnection.isConnectionValid(validCon));
+			try (Statement stmt = validCon.createStatement())
+			{
+				stmt.executeQuery("SELECT 1 FROM system.iota");
+			}
+		}
+		finally
+		{
+			validCon.close();
 		}
 	}
 }
